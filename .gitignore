@@ -4,3 +4,5 @@ lfs-test-server-out.*
 lfs-test-server-release.*
 .idea
 lfs.db
+*.crt
+*.key
