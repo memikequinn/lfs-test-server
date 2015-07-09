@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"fmt"
 )
 
 // MetaStore implements a metadata storage. It stores user credentials and Meta information
@@ -66,9 +67,10 @@ func (s *MetaStore) Get(v *RequestVars) (*MetaObject, error) {
 
 		value := bucket.Get([]byte(v.Oid))
 		if len(value) == 0 {
+			fmt.Printf("Cannot find %s\n", v.Oid)
 			return errObjectNotFound
 		}
-
+		fmt.Printf("Returning %s\n", v.Oid)
 		dec := gob.NewDecoder(bytes.NewBuffer(value))
 		return dec.Decode(&meta)
 	})
@@ -107,10 +109,11 @@ func (s *MetaStore) Put(v *RequestVars) (*MetaObject, error) {
 		}
 
 		err = bucket.Put([]byte(v.Oid), buf.Bytes())
+		fmt.Println("Added buffered files")
 		if err != nil {
 			return err
 		}
-
+		fmt.Println("No files to add")
 		return nil
 	})
 
@@ -220,6 +223,7 @@ func (s *MetaStore) authenticate(authorization string) bool {
 	if !strings.HasPrefix(authorization, "Basic ") {
 		return false
 	}
+	fmt.Println("Decoding auth")
 
 	c, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(authorization, "Basic "))
 	if err != nil {
@@ -231,7 +235,7 @@ func (s *MetaStore) authenticate(authorization string) bool {
 		return false
 	}
 	user, password := cs[:i], cs[i+1:]
-
+	fmt.Printf("Username is %s and password is %s\n", user, password)
 	value := ""
 
 	s.db.View(func(tx *bolt.Tx) error {

@@ -40,8 +40,9 @@ type Representation struct {
 
 // ObjectLink builds a URL linking to the object.
 func (v *RequestVars) ObjectLink() string {
-	path := fmt.Sprintf("/%s/%s/objects/%s", v.User, v.Repo, v.Oid)
-
+//	path := fmt.Sprintf("/%s/%s/objects/%s", v.User, v.Repo, v.Oid)
+	path := fmt.Sprintf("/objects/%s", v.Oid)
+	fmt.Printf("Path is set to %s\n", path)
 	if Config.IsHTTPS() {
 		return fmt.Sprintf("%s://%s%s", Config.Scheme, Config.Host, path)
 	}
@@ -68,12 +69,12 @@ func NewApp(content *ContentStore, meta *MetaStore) *App {
 
 	r := mux.NewRouter()
 
-	route := "/{user}/{repo}/objects/{oid}"
+	route := "/objects/{oid}"
 	r.HandleFunc(route, app.GetContentHandler).Methods("GET", "HEAD").MatcherFunc(ContentMatcher)
 	r.HandleFunc(route, app.GetMetaHandler).Methods("GET", "HEAD").MatcherFunc(MetaMatcher)
 	r.HandleFunc(route, app.PutHandler).Methods("PUT").MatcherFunc(ContentMatcher)
 
-	r.HandleFunc("/{user}/{repo}/objects", app.PostHandler).Methods("POST").MatcherFunc(MetaMatcher)
+	r.HandleFunc("/objects", app.PostHandler).Methods("POST").MatcherFunc(MetaMatcher)
 
 	app.addMgmt(r)
 
@@ -201,7 +202,13 @@ func (a *App) Represent(rv *RequestVars, meta *MetaObject, download, upload bool
 	}
 
 	if download {
-		rep.Links["download"] = &link{Href: rv.ObjectLink(), Header: map[string]string{"Accept": contentMediaType}}
+		fmt.Printf("This is a download\n")
+		header := make(map[string]string)
+		header["Accept"] = contentMediaType
+		header["Authorization"] = rv.Authorization
+		header["Accept"] = contentMediaType
+
+		rep.Links["download"] = &link{Href: rv.ObjectLink(), Header: header}
 	}
 
 	if upload {

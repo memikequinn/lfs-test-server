@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"fmt"
 )
 
 var (
@@ -32,7 +33,7 @@ func NewContentStore(base string) (*ContentStore, error) {
 // it as an io.Reader.
 func (s *ContentStore) Get(meta *MetaObject) (io.Reader, error) {
 	path := filepath.Join(s.basePath, transformKey(meta.Oid))
-
+	fmt.Printf("Path is %s", path)
 	return os.Open(path)
 }
 
@@ -83,6 +84,7 @@ func (s *ContentStore) Exists(meta *MetaObject) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
+	fmt.Println("Already there\n")
 	return true
 }
 
